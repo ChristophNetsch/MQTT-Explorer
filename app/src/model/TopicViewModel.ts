@@ -11,9 +11,9 @@ function findDecoder<T extends Destroyable>(node: q.TreeNode<T>): TopicDecoder |
 
   return decoder
     ? {
-        decoder,
-        format: undefined,
-      }
+      decoder,
+      format: undefined,
+    }
     : undefined
 }
 

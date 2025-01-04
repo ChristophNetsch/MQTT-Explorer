@@ -3,6 +3,9 @@ import { Destroyable } from './Destroyable'
 import { EventDispatcher, makeConnectionMessageEvent, MqttMessage, EventBusInterface } from '../../../events'
 import { TreeNode } from './'
 import { TreeNodeFactory } from './TreeNodeFactory'
+import type { MessagePreprocessor } from './preprocessors/MessagePreprocessor'
+import { getPreprocessor, PreprocessorType } from './preprocessors/MessagePreprocessors'
+
 
 export class Tree<ViewModel extends Destroyable> extends TreeNode<ViewModel> {
   public connectionId?: string
@@ -13,17 +16,41 @@ export class Tree<ViewModel extends Destroyable> extends TreeNode<ViewModel> {
   private cachedHash = `${Math.random()}`
   private unmergedMessages: ChangeBuffer = new ChangeBuffer()
   public didUpdate = new EventDispatcher<void>()
+  private msgPreprocessor?: MessagePreprocessor
 
   public updateInterval: any
   private paused: boolean = false
   private applyChangesHasCompleted = true
 
-  constructor() {
+  constructor(preprocessor?: PreprocessorType) {
     super(undefined, undefined)
+    if (preprocessor) {
+      console.log('Tree constructor', preprocessor)
+      this.setPreprocessor(preprocessor)
+    }
+    else {
+      this.msgPreprocessor = undefined
+    }
+  }
+
+  public setPreprocessor(preprocessor: PreprocessorType) {
+    this.msgPreprocessor = getPreprocessor(preprocessor)
   }
 
   private handleNewData = (msg: MqttMessage) => {
-    this.unmergedMessages.push(msg)
+    console.log('handleNewData', msg, this.msgPreprocessor)
+    if (this.msgPreprocessor && this.msgPreprocessor.canPreprocess(msg)) {
+      const msgs = this.msgPreprocessor.preprocess(msg)
+      if (Array.isArray(msgs)) {
+        msgs.forEach(msg => this.unmergedMessages.push(msg))
+      }
+      else {
+        this.unmergedMessages.push(msgs)
+      }
+    }
+    else {
+      this.unmergedMessages.push(msg)
+    }
   }
 
   private runUpdates() {
@@ -31,7 +58,7 @@ export class Tree<ViewModel extends Destroyable> extends TreeNode<ViewModel> {
       if (!this.paused && this.applyChangesHasCompleted) {
         this.applyChangesHasCompleted = false
         if ((window as any).requestIdleCallback) {
-          ;(window as any).requestIdleCallback(() => this.applyUnmergedChanges(), { timeout: 500 })
+          ; (window as any).requestIdleCallback(() => this.applyUnmergedChanges(), { timeout: 500 })
         } else {
           this.applyUnmergedChanges()
         }

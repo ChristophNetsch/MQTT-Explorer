@@ -26,6 +26,7 @@ export interface Props {
 
 export default withTheme(
   memo((props: Props) => {
+    console.log('Chart.tsx')
     const [width, setWidth] = React.useState(300)
     const [tooltip, setTooltip] = React.useState<Tooltip | undefined>()
     const detectResize = React.useCallback(newWidth => setWidth(newWidth), [])

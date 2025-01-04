@@ -17,6 +17,7 @@ export interface SettingsStateModel {
   highlightTopicUpdates: boolean
   valueRendererDisplayMode: ValueRendererDisplayMode
   selectTopicWithMouseOver: boolean
+  parseParrisNamespace: boolean
   theme: 'light' | 'dark'
 }
 
@@ -43,6 +44,7 @@ export enum ActionTypes {
   SETTINGS_SET_THEME_LIGHT = 'SETTINGS_SET_THEME_LIGHT',
   SETTINGS_SET_THEME_DARK = 'SETTINGS_SET_THEME_DARK',
   SETTINGS_SET_TIME_LOCALE = 'SETTINGS_SET_TIME_LOCALE',
+  SETTINGS_TOGGLE_PARRIS_NAMESPACE = 'SETTINGS_TOGGLE_PARRIS_NAMESPACE',
 }
 
 const initialState = Record<SettingsStateModel>({
@@ -52,6 +54,7 @@ const initialState = Record<SettingsStateModel>({
   highlightTopicUpdates: true,
   valueRendererDisplayMode: 'diff',
   selectTopicWithMouseOver: false,
+  parseParrisNamespace: true,
   theme: 'light',
   topicFilter: undefined,
 })
@@ -73,6 +76,7 @@ const reducerActions: {
   SETTINGS_SET_THEME_LIGHT: setTheme('light'),
   SETTINGS_SET_THEME_DARK: setTheme('dark'),
   SETTINGS_SET_TIME_LOCALE: setTimeLocale,
+  SETTINGS_TOGGLE_PARRIS_NAMESPACE: toggleParseParrisNamespace,
 }
 
 export const settingsReducer = createReducer(initialState(), reducerActions)
@@ -98,6 +102,14 @@ export interface SetSelectTopicWithMouseOverAction {
 
 export function setSelectTopicWithMouseOver(state: SettingsState, action: SetSelectTopicWithMouseOverAction) {
   return state.set('selectTopicWithMouseOver', !state.get('selectTopicWithMouseOver'))
+}
+
+export interface ToggleParseParrisNamespaceAction {
+  type: ActionTypes.SETTINGS_TOGGLE_PARRIS_NAMESPACE
+}
+
+export function toggleParseParrisNamespace(state: SettingsState) {
+  return state.set('parseParrisNamespace', !state.get('parseParrisNamespace'))
 }
 
 export interface SetTimeLocale {

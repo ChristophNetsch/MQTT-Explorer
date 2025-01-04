@@ -8,10 +8,15 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceRoot": "src/",
-    "target": "ES2017",
-    "lib": ["ES2017", "dom"],
+    "target": "ESNext",
+    "lib": [
+      "ESNext",
+      "dom"
+    ],
     "sourceMap": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     "esModuleInterop": true
   },
@@ -22,5 +27,7 @@
     "src/spec/leakTest.ts",
     "scripts/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

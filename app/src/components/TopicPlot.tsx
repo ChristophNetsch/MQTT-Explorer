@@ -48,11 +48,13 @@ function nodeDotPathToHistory(
       try {
         const decoded = decodeMessage(message)?.message
         json = decoded ? JSON.parse(decoded.toUnicodeString()) : {}
-      } catch (ignore) {}
+      } catch (ignore) { }
 
       const value = dotProp.get(json, dotPath)
 
-      return { x: message.received.getTime(), y: toPlottableValue(value) }
+      const x = json.timestamp || message.received.getTime()
+
+      return { x: x, y: toPlottableValue(value) }
     })
     .filter(data => !isNaN(data.y as any)) as any
 }

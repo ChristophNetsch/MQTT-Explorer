@@ -10,6 +10,7 @@ import { resetStore as resetTreeStore, showTree } from './Tree'
 import { showError } from './Global'
 import { TopicViewModel } from '../model/TopicViewModel'
 import { addMqttConnectionEvent, makeConnectionStateEvent, removeConnection, rendererEvents } from '../../../events'
+import { PreprocessorType } from '../../../backend/src/Model/preprocessors/MessagePreprocessors'
 
 export const connect =
   (options: MqttOptions, connectionId: string) => (dispatch: Dispatch<any>, getState: () => AppState) => {
@@ -18,12 +19,16 @@ export const connect =
     const event = makeConnectionStateEvent(connectionId)
     const host = url.parse(options.url).hostname
 
+
+
     rendererEvents.subscribe(event, dataSourceState => {
       if (dataSourceState.connected) {
         const didReconnect = Boolean(getState().connection.tree)
         if (!didReconnect) {
-          const tree = new q.Tree<TopicViewModel>()
+          const parseParrisNamespace = getState().settings.get('parseParrisNamespace')
+          const tree = new q.Tree<TopicViewModel>(parseParrisNamespace ? PreprocessorType.Parris : PreprocessorType.None)
           tree.updateWithConnection(rendererEvents, connectionId)
+
           dispatch(showTree(tree))
           dispatch(connected(tree, host!))
         }

@@ -84,6 +84,7 @@ interface Props {
   classes: any
   highlightTopicUpdates: boolean
   selectTopicWithMouseOver: boolean
+  parseParrisNamespace: boolean
   store?: any
   topicOrder: TopicOrder
   visible: boolean
@@ -109,6 +110,19 @@ class Settings extends React.PureComponent<Props, {}> {
         tooltip="Topics blink when a new message arrives"
         value={highlightTopicUpdates}
         action={actions.settings.toggleHighlightTopicUpdates}
+      />
+    )
+  }
+
+  private renderParseParrisNamespace() {
+    const { parseParrisNamespace, actions } = this.props
+
+    return (
+      <BooleanSwitch
+        title="Parris Namespace"
+        tooltip="Parse Parris namespace structure for MQTT/Sparkplug B messages and ISA95 topic namespace hierarchy."
+        value={parseParrisNamespace}
+        action={actions.settings.toggleParseParrisNamespace}
       />
     )
   }
@@ -223,6 +237,10 @@ class Settings extends React.PureComponent<Props, {}> {
           {this.renderHighlightTopicUpdates()}
           {this.selectTopicsOnMouseOver()}
           {this.toggleTheme()}
+
+          {/* New Parris toggle */}
+          {this.renderParseParrisNamespace()}
+
         </div>
         <Tooltip placement="top" title="App Author">
           <Typography className={classes.author} onClick={this.openGithubPage}>
@@ -242,6 +260,7 @@ const mapStateToProps = (state: AppState) => {
     visible: state.globalState.get('settingsVisible'),
     highlightTopicUpdates: state.settings.get('highlightTopicUpdates'),
     selectTopicWithMouseOver: state.settings.get('selectTopicWithMouseOver'),
+    parseParrisNamespace: state.settings.get('parseParrisNamespace'),
     theme: state.settings.get('theme'),
   }
 }

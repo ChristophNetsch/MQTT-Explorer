@@ -4,6 +4,7 @@
     "skipLibCheck": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
+    "esModuleInterop": true,
     "outDir": "./build",
     "strict": true,
     "lib": [

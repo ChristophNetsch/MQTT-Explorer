@@ -14,7 +14,14 @@ export class Base64Message {
 
   private get unicodeValue(): string {
     if (!this._unicodeValue) {
-      this._unicodeValue = Base64.decode(this.base64Message ?? '')
+      const decodedStr = Base64.decode(this.base64Message ?? '')
+      try {
+        const asObject = JSON.parse(decodedStr)
+        const fixed = Base64Message.fix64BitValues(asObject)
+        this._unicodeValue = JSON.stringify(fixed)
+      } catch (err) {
+        this._unicodeValue = decodedStr
+      }
     }
 
     return this._unicodeValue
@@ -55,12 +62,51 @@ export class Base64Message {
     return new Base64Message(Base64.encode(str))
   }
 
+  /**
+   * Converts all properties with shape { low, high, unsigned } to a single integer.
+   * This handles nested objects/arrays too, so if your metrics have their own
+   * timestamp or seq fields, they will also be fixed.
+   */
+  private static fix64BitValues(obj: any): any {
+    // If it's not an object or is null, nothing to fix
+    if (typeof obj !== 'object' || obj === null) {
+      return obj
+    }
+
+    // Check if it looks like a 64-bit representation
+    if (
+      typeof obj.low === 'number' &&
+      typeof obj.high === 'number' &&
+      typeof obj.unsigned === 'boolean'
+    ) {
+      // Reconstruct the 64-bit integer
+      return obj.low + obj.high * Math.pow(2, 32)
+    }
+
+    // Otherwise, recurse into all properties (if it's an array, we'll iterate keys as well)
+    for (const key of Object.keys(obj)) {
+      obj[key] = Base64Message.fix64BitValues(obj[key])
+    }
+
+    return obj
+  }
+
+  /**
+   * Formats the Base64-encoded payload into either a JSON string (and fixes 64-bit values),
+   * hex, or a plain string. The second return value indicates if we want syntax highlighting.
+   */
   public format(type: TopicDataType = 'string'): [string, 'json' | undefined] {
     try {
       switch (type) {
         case 'json': {
+          // Parse the JSON
           const json = JSON.parse(this.toUnicodeString())
-          return [JSON.stringify(json, undefined, '  '), 'json']
+
+          // Recursively fix all 64-bit fields
+          const fixed = Base64Message.fix64BitValues(json)
+
+          // Return pretty-printed JSON
+          return [JSON.stringify(fixed, null, 2), 'json']
         }
         case 'hex': {
           const hex = Base64Message.toHex(this)
@@ -72,6 +118,7 @@ export class Base64Message {
         }
       }
     } catch (error) {
+      // If JSON parse fails, just return the plain string
       const str = this.toUnicodeString()
       return [str, undefined]
     }
