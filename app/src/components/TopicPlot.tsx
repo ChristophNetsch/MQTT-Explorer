@@ -52,7 +52,7 @@ function nodeDotPathToHistory(
 
       const value = dotProp.get(json, dotPath)
 
-      const x = json.timestamp || message.received.getTime()
+      const x = json.timestamp ? json.timestamp * 1000 : message.received.getTime()
 
       return { x: x, y: toPlottableValue(value) }
     })
